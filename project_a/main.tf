@@ -16,12 +16,6 @@ resource "google_compute_subnetwork" "vpc_subnet_a" {
     region        = var.region
     network       = google_compute_network.vpc_network.id
 }
-resource "google_compute_subnetwork" "vpc_subnet_b" {
-    name          = "b-subnet"
-    ip_cidr_range = "10.1.0.0/24"
-    region        = var.region_us
-    network       = google_compute_network.vpc_network.id
-}
 
 //Create Networks
 resource "google_compute_network" "vpc_network" {
@@ -76,34 +70,7 @@ resource "google_compute_instance" "vm_a" {
     }
 }
 
-// VM 2
-resource "google_compute_instance" "vm_b" {
-    name         = "vmb-${random_id.instance_id.hex}"
-    machine_type = var.size
-    zone         = var.zone_us
-
-    boot_disk {
-        initialize_params {
-            image = var.image
-        }
-    }
-
-    metadata = {
-        ssh-keys = "chris:${file("~/.ssh/id_rsa.pub")}"
-    }
-
-    network_interface {
-        network = google_compute_network.vpc_network.name
-        subnetwork = google_compute_subnetwork.vpc_subnet_b.name
-        access_config {}
-    }
-}
-
 // External IP outputs
 output "vma-ip" {
     value = google_compute_instance.vm_a.network_interface.0.access_config.0.nat_ip
-}
-
-output "vmb-ip" {
-    value = google_compute_instance.vm_b.network_interface.0.access_config.0.nat_ip
 }
